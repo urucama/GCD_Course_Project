@@ -60,30 +60,30 @@ The script will use the Hmisc and reshape2 library
 #First activity: Merges the training and the test sets to create one data set.
 
 
-setwd("D:/Cédric/Repositery/R-repo/GCD/courseProject")  Replace with relevant path to define the location of the files
-
 Load all the text files as data frames - I respect the folder structure of the zip file
+```sh
+xtrain <- read.csv("UCI HAR Dataset/train/X_train.txt", sep="", header=FALSE)
+ytrain <- read.csv("UCI HAR Dataset/train/Y_train.txt", sep="", header=FALSE)
+sbtrain <- read.csv("UCI HAR Dataset/train/subject_train.txt", sep="", header=FALSE)
 
-`xtrain <- read.csv("UCI HAR Dataset/train/X_train.txt", sep="", header=FALSE)
-`ytrain <- read.csv("UCI HAR Dataset/train/Y_train.txt", sep="", header=FALSE)
-`sbtrain <- read.csv("UCI HAR Dataset/train/subject_train.txt", sep="", header=FALSE)
+xtest <- read.csv("UCI HAR Dataset/test/X_test.txt", sep="", header=FALSE)
+ytest <- read.csv("UCI HAR Dataset/test/Y_test.txt", sep="", header=FALSE)
+sbtest <- read.csv("UCI HAR Dataset/test/subject_test.txt", sep="", header=FALSE)
 
-`xtest <- read.csv("UCI HAR Dataset/test/X_test.txt", sep="", header=FALSE)
-`ytest <- read.csv("UCI HAR Dataset/test/Y_test.txt", sep="", header=FALSE)
-`sbtest <- read.csv("UCI HAR Dataset/test/subject_test.txt", sep="", header=FALSE)
-
-`features <- read.csv("UCI HAR Dataset/features.txt", sep="", header= FALSE)
-`activities <- read.csv("UCI HAR Dataset/activity_labels.txt", sep="", header= FALSE)
-
+features <- read.csv("UCI HAR Dataset/features.txt", sep="", header= FALSE)
+activities <- read.csv("UCI HAR Dataset/activity_labels.txt", sep="", header= FALSE)
+```
 
 To merge the data, it is necessary to first define each measurement on both xtrain and ytrain with relevant person and activity
 by adding the person and activity columns
 
-`main_table_train <- cbind(sbtrain, ytrain, xtrain)
-`main_table_test <- cbind(sbtest, ytest, xtest)
+```sh
+main_table_train <- cbind(sbtrain, ytrain, xtrain)
+main_table_test <- cbind(sbtest, ytest, xtest)
+```
 
 Then train and test rows can be merged
-`main_table <- rbind(main_table_train, main_table_test)
+main_table <- rbind(main_table_train, main_table_test)
 
 
 #Second activity: Extracts only the measurements on the mean and standard deviation for each measurement.
@@ -91,17 +91,21 @@ Then train and test rows can be merged
 
 
 Firstly, The features names are extracted and appended with labels for the subject and activity columns, added during the first activity.
+
+```sh
 features <- read.csv("UCI HAR Dataset/features.txt", sep="", header= FALSE)
-`var_names <- c("subject", "activity", as.vector(features[,2]))
-`colnames(main_table) <- var_names 
+var_names <- c("subject", "activity", as.vector(features[,2]))
+colnames(main_table) <- var_names 
+```
 
 Then, I filter the mean and standard deviation features out, that are noticeable with the -mean and -stp suffixes
-`mean_var_name <- var_names[grep("-mean", var_names)]
-`std_var_name <- var_names[grep("-std", var_names)]
-`restricted_var_name <- c(mean_var_name, std_var_name) 
+```sh
+mean_var_name <- var_names[grep("-mean", var_names)]
+std_var_name <- var_names[grep("-std", var_names)]
+restricted_var_name <- c(mean_var_name, std_var_name) 
 
-`restricted_table <- main_table[,c("subject","activity", restricted_var_name)] Finally, the mean and standard deviation are subsetted
-
+restricted_table <- main_table[,c("subject","activity", restricted_var_name)] Finally, the mean and standard deviation are subsetted
+```
 
 
 #Third activity: Uses descriptive activity names to name the activities in the data set
@@ -109,9 +113,10 @@ Then, I filter the mean and standard deviation features out, that are noticeable
 
 
 First, the activity labels are loaded in a data frame, then used as factor in the subsetted data
-`activities <- read.csv("UCI HAR Dataset/activity_labels.txt", sep="", header= FALSE)
-`restricted_table$activity <- factor(restricted_table$activity, label=activities$V2)
-
+```sh
+activities <- read.csv("UCI HAR Dataset/activity_labels.txt", sep="", header= FALSE)
+restricted_table$activity <- factor(restricted_table$activity, label=activities$V2)
+```
 
 
 #Fourth activity: Appropriately labels the data set with descriptive variable names. 
@@ -126,14 +131,17 @@ First, the activity labels are loaded in a data frame, then used as factor in th
 First the variables used in the subsetted data are to be melted in order to highlight the features as the variable to measure
 In that way, features are not several variables any more, but a unique, factor-like one with one value associated.
 Consequently, each measure is on one row.
-
-`rt_melt <- melt(restricted_table, id=c("subject","activity"), measure.var=restricted_var_name)
-
+```sh
+rt_melt <- melt(restricted_table, id=c("subject","activity"), measure.var=restricted_var_name)
+```
 Then, the aggregate command apply the mean function to calculate the mean value of all the row with the same feature. 
-`raw_result <- aggregate(rt_melt$value,by=list(rt_melt$subject, rt_melt$activity, rt_melt$variable), FUN=mean)
-
+```sh
+raw_result <- aggregate(rt_melt$value,by=list(rt_melt$subject, rt_melt$activity, rt_melt$variable), FUN=mean)
+```
 Finally, relevant labels can be added for better presentation. The order of the data frame can be tweaked too.
-`colnames(raw_result) <- c("subject", "activity", "feature", "average value")
-`result <- raw_result[order(raw_result$subject,raw_result$activity),]
+```sh
+colnames(raw_result) <- c("subject", "activity", "feature", "average value")
+result <- raw_result[order(raw_result$subject,raw_result$activity),]
+```
 
 
